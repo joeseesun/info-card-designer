@@ -69,6 +69,11 @@ Say any of these to Claude:
 | Card content is wrong / made up | The skill is instructed to use only your source content — re-trigger with the URL or paste the text directly |
 | Card too tall (1 image) | Splitting is automatic when height > 1200px; check that Pillow is installed |
 
+### Credits
+
+Design inspiration from [@shao__meng](https://x.com/shao__meng)'s original post on X:
+[https://x.com/shao__meng/status/2027368489439334504](https://x.com/shao__meng/status/2027368489439334504)
+
 ---
 
 <a name="中文"></a>
@@ -133,3 +138,8 @@ npx skills add joeseesun/info-card-designer
 | `No module named PIL` | 运行 `pip3 install Pillow` |
 | 内容不对 / 有编造 | 提供原文链接或直接粘贴文本，重新触发 |
 | 超长卡没有分割 | 确认 Pillow 已安装，高度 >1200px 才触发分割 |
+
+### 致谢
+
+设计风格灵感来自 [@shao__meng](https://x.com/shao__meng) 在 X 上的这篇分享：
+[https://x.com/shao__meng/status/2027368489439334504](https://x.com/shao__meng/status/2027368489439334504)
