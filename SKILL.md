@@ -48,11 +48,14 @@ description: |
 
 ### Step 3：截图（必须执行）
 
-优先用 **Chrome DevTools MCP**：
+优先用 **Chrome DevTools MCP**，必须开启 2x 分辨率（Retina 清晰）：
 
 1. `navigate_page` → `file:///tmp/info-card-xxx.html`
-2. `resize_page` → width=600, height=900
-3. `take_screenshot` → fullPage=true, filePath=[初始路径]
+2. `emulate` → viewport=`[宽度]x900x2`（第三个数字是 devicePixelRatio=2，e.g. `600x900x2`）
+3. `resize_page` → width=[宽度], height=900
+4. `take_screenshot` → fullPage=true, filePath=[初始路径]
+
+> **为什么要 2x**：默认 devicePixelRatio=1，Retina 屏幕显示模糊；设为 2 后截图实际像素翻倍（600px 卡片 → 1200px PNG），X/小红书展示清晰锐利。
 
 ### Step 4：超长分割
 
