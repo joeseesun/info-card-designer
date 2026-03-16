@@ -48,14 +48,20 @@ description: |
 
 ### Step 3：截图（必须执行）
 
-优先用 **Chrome DevTools MCP**，必须开启 2x 分辨率（Retina 清晰）：
+优先用 **Chrome DevTools MCP**，按卡片宽度选择对应 devicePixelRatio（确保输出 PNG 落在 1200-1800px 甜区）：
+
+| 卡片宽度 | devicePixelRatio | 输出 PNG 宽度 |
+|---------|-----------------|-------------|
+| 480px | **3x** | 1440px |
+| 600px | **2x** | 1200px |
+| 900px | **2x** | 1800px |
 
 1. `navigate_page` → `file:///tmp/info-card-xxx.html`
-2. `emulate` → viewport=`[宽度]x900x2`（第三个数字是 devicePixelRatio=2，e.g. `600x900x2`）
+2. `emulate` → viewport=`[宽度]x900x[倍率]`（e.g. 480px 卡片用 `480x900x3`，600px 用 `600x900x2`）
 3. `resize_page` → width=[宽度], height=900
 4. `take_screenshot` → fullPage=true, filePath=[初始路径]
 
-> **为什么要 2x**：默认 devicePixelRatio=1，Retina 屏幕显示模糊；设为 2 后截图实际像素翻倍（600px 卡片 → 1200px PNG），X/小红书展示清晰锐利。
+> **为什么不统一 3x**：900px × 3x = 2700px，文件过大且社交平台会压缩，收益递减；480px 因 CSS 宽度小，3x 才能保证 1440px 输出不虚糊。
 
 ### Step 4：超长分割
 
