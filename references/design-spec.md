@@ -2,21 +2,46 @@
 
 ## 字体引入
 
+**标题字体**：仓耳今楷02（本地 TTF）
+**正文字体**：仓耳今楷02（同一字体，统一视觉风格）
+
 ```html
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700;900&family=Noto+Sans+SC:wght@400;500;700&family=Oswald:wght@500;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+@font-face {
+  font-family: 'TsangerJinKai';
+  src: url('file:///Users/joe/.claude/skills/qiaomu-info-card-designer/assets/TsangerJinKai02-W04.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+</style>
 ```
 
-## 字号规范（vw 单位，随宽度自动缩放）
+**字体栈定义**（写在 CSS 变量中）：
+```css
+:root {
+  --font-title: 'TsangerJinKai', serif;
+  --font-body: 'TsangerJinKai', serif;
+  --font-label: 'TsangerJinKai', sans-serif;
+  --font-mono: 'SF Mono', 'Menlo', monospace;
+}
+```
 
-**核心原则**：所有字号用 `clamp(min, Xvw, max)` 写，不写固定 px，确保 480/600/900 三种宽度比例一致。
+> **为什么用本地字体**：Google Fonts 在 `file://` 协议下可能加载失败或延迟，导致截图时字体 fallback 为系统默认。本地 @font-face 保证 100% 命中，截图零等待。
 
-| 层级 | CSS | 480px效果 | 600px效果 | 900px效果 |
-|------|-----|-----------|-----------|-----------|
-| 主标题 | `clamp(40px, 13vw, 130px)` | ~62px | ~78px | ~117px |
-| 条目标题 | `clamp(16px, 4.5vw, 44px)` | ~22px | ~27px | ~40px |
-| 正文 | `clamp(14px, 3.2vw, 24px)` | ~15px | ~19px | ~28px |
-| 辅助信息 | `clamp(12px, 2.5vw, 20px)` | ~12px | ~15px | ~22px |
-| 元数据/标签 | `clamp(10px, 2vw, 15px)` | ~10px | ~12px | ~15px |
+## 字号规范（手机阅读优先）
+
+**核心原则**：卡片最终以图片形式在手机上全屏阅读。600px CSS × 2x 截图 = 1200px 图片，iPhone 3x 屏近 1:1 显示。换算公式：`CSS px × 2 ÷ 3 ≈ 手机上的 pt`。**正文必须 ≥ 13pt（20px CSS），标签必须 ≥ 10pt（16px CSS）**。
+
+| 层级 | 600px 固定值 | 手机 pt | 说明 |
+|------|-------------|---------|------|
+| 主标题 | 56px | ~37pt | 视觉冲击，楷体不加粗 |
+| 条目标题 h3 | 28px | ~18pt | 视觉锚点，扫读入口 |
+| 正文 | 20px | ~13pt | 舒适阅读底线 |
+| 副标题/金句 | 22px | ~14pt | 略大于正文 |
+| 标签/speaker/dim | 16px | ~10pt | 清晰可辨 |
+| 页脚 | 15px | ~10pt | 最小可读 |
+| 金句出处 | 15px, color #777 | ~10pt | 不用 #999 |
 
 ## 基础卡片 CSS
 
@@ -38,10 +63,10 @@ body {
 .card {
   width: 600px;
   background: var(--color-bg);
-  padding: 50px;
+  padding: 38px;
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 24px;
   position: relative;
   overflow: hidden;
 }
@@ -58,21 +83,21 @@ body {
 
 .card > * { position: relative; z-index: 1; }
 
-/* 标题 */
+/* 标题 — 仓耳今楷，楷书质感 */
 .main-title {
-  font-family: 'Noto Serif SC', serif;
-  font-size: 80px;
-  font-weight: 900;
-  line-height: 1.0;
+  font-family: var(--font-title);
+  font-size: 56px;
+  font-weight: normal;  /* 楷书字体自带笔画粗细变化，不需要 bold */
+  line-height: 1.15;
   color: #0a0a0a;
-  letter-spacing: -0.03em;
+  letter-spacing: 0.02em;  /* 楷书适合微正间距 */
 }
 
-/* 正文 */
+/* 正文 — 仓耳今楷，统一风格 */
 .content-body {
-  font-family: 'Inter', 'Noto Sans SC', sans-serif;
-  font-size: 19px;
-  line-height: 1.6;
+  font-family: var(--font-body);
+  font-size: 20px;
+  line-height: 1.65;
   color: #1a1a1a;
 }
 
@@ -89,12 +114,12 @@ body {
   width: 100%;
 }
 
-/* 标签 */
+/* 标签 — 可选元素，仅在系列卡片需要编号或用户要求时添加 */
 .label {
-  font-family: 'Oswald', 'Inter', sans-serif;
-  font-size: 13px;
+  font-family: var(--font-label);
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-accent);
 }
@@ -102,13 +127,13 @@ body {
 /* 背景色块 */
 .bg-block {
   background: rgba(0,0,0,0.03);
-  padding: 20px 24px;
+  padding: 18px 20px;
   border-left: 4px solid var(--color-accent);
 }
 
-/* 数字大字 */
+/* 数字大字 — 系统字体 */
 .stat-number {
-  font-family: 'Oswald', 'Inter', sans-serif;
+  font-family: var(--font-label);
   font-size: 120px;
   font-weight: 700;
   line-height: 1.0;
@@ -136,7 +161,7 @@ body {
 
 /* 页脚/来源 */
 .footer {
-  font-size: 13px;
+  font-size: 15px;
   color: #888;
   letter-spacing: 0.05em;
   border-top: 1px solid rgba(0,0,0,0.1);
@@ -144,6 +169,18 @@ body {
   margin-top: 10px;
 }
 ```
+
+## 布局速查（密度 → 模板选择）
+
+| 密度 | 内容量 | 推荐模板 | 主标题字号 | 条目标题 | 正文字号 |
+|------|--------|---------|-----------|---------|---------|
+| 低密度 | 1 个核心观点 | **模板 A** 大字符主义 | 72-96px | — | 22px |
+| 中密度 | 2-4 要点 | **模板 B** 标准单栏 | 56-72px | 26-30px | 20-22px |
+| 高密度 | 5+ 要点 | **模板 D** 单栏列表（推荐） | 48-56px | 24-28px | 18-20px |
+| 高密度+桌面 | 5+ 要点，用户要求多栏 | **模板 C** 多栏网格（可选） | 48px | 24-28px | 18-20px |
+
+> **字体**：全部使用 `TsangerJinKai`（仓耳今楷，本地 TTF），不使用系统字体。
+> **默认宽度**：600px，所有模板统一。
 
 ## 布局模板
 
@@ -156,14 +193,22 @@ body {
 <html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=900">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700;900&family=Noto+Sans+SC:wght@400;500;700&family=Oswald:wght@500;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>/* 基础CSS + 本模板样式 */</style>
+  <meta name="viewport" content="width=600">
+  <style>
+  @font-face {
+    font-family: 'TsangerJinKai';
+    src: url('file:///Users/joe/.claude/skills/qiaomu-info-card-designer/assets/TsangerJinKai02-W04.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: block;
+  }
+  /* 基础CSS + 本模板样式 */
+  </style>
 </head>
 <body>
 <div class="card" style="min-height: 900px; justify-content: space-between;">
-  <!-- 顶部标签 -->
-  <div class="label">主题标签</div>
+  <!-- 顶部标签（可选，仅系列卡片编号或用户要求时添加） -->
+  <!-- <div class="label">主题标签</div> -->
 
   <!-- 核心内容区 -->
   <div>
@@ -189,11 +234,12 @@ body {
 
 ```html
 <div class="card">
-  <!-- 顶部 -->
+  <!-- 顶部标签（可选，仅系列卡片编号或用户要求时添加）
   <div style="display: flex; align-items: center; gap: 16px;">
-    <div class="label">分类</div>
+    <div class="label">分类 · 1/N</div>
     <div class="accent-bar"></div>
   </div>
+  -->
 
   <!-- 主标题 -->
   <div>
@@ -218,15 +264,17 @@ body {
 </div>
 ```
 
-### 模板 C：多栏网格（高密度内容）
+### 模板 C：多栏网格（高密度内容，可选/桌面端）
 
-适用：5+ 要点、对比、列表
+> ⚠️ 多栏在手机上每栏太窄，**仅在用户明确要求或桌面端展示时使用**。默认高密度内容推荐模板 D。
+
+适用：5+ 要点、对比、列表（桌面端展示）
 
 ```html
 <div class="card">
-  <!-- 顶部标题 -->
+  <!-- 顶部（标签可选，仅系列卡片编号或用户要求时添加） -->
   <div>
-    <div class="label">专题</div>
+    <!-- <div class="label">专题 · 1/N</div> -->
     <h1 class="main-title" style="font-size: 48px; margin-top: 8px;">标题</h1>
     <div class="accent-bar-full" style="margin-top: 16px;"></div>
   </div>
@@ -250,13 +298,159 @@ body {
 </div>
 ```
 
-## X (Twitter) 优化要点
+### 模板 D：单栏列表（高密度内容，推荐）
 
-1. **固定宽度 900px**：X 展示图片时按比例缩放，900px 保证文字不会过小
-2. **viewport meta**：`<meta name="viewport" content="width=900">` 防止浏览器缩放
-3. **推荐比例**：1:1 (900×900) 或 16:9 (900×506) 效果最佳
-4. **截图用 fullPage=true**：捕获完整卡片，不裁剪
-5. **字号底线**：任何可读文字 **不低于 16px**，正文 **不低于 18px**
+适用：5+ 要点、文章要点列表、手机端高密度展示
+
+> ✅ 高密度内容的**默认选择**，手机上每个要点都能完整展示，不会被挤压。
+
+```html
+<div class="card">
+  <!-- 顶部标签（可选，仅系列卡片编号或用户要求时添加）
+  <div style="display: flex; align-items: center; gap: 16px;">
+    <div class="label">专题 · 1/N</div>
+    <div class="accent-bar"></div>
+  </div>
+  -->
+
+  <!-- 主标题 -->
+  <div>
+    <h1 class="main-title" style="font-size: 52px;">标题</h1>
+    <div class="accent-bar-full" style="margin-top: 16px;"></div>
+  </div>
+
+  <!-- 要点列表（单栏，每条独立） -->
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    <!-- 要点 1 -->
+    <div style="border-left: 4px solid var(--color-accent); padding-left: 20px;">
+      <h3 style="font-family: var(--font-title); font-size: 22px; font-weight: normal; margin-bottom: 6px; color: #0a0a0a;">条目标题</h3>
+      <p class="content-body" style="font-size: 16px;">要点描述，1-2 句话，手机上清晰可读。</p>
+    </div>
+    <!-- 要点 2 -->
+    <div style="border-left: 4px solid var(--color-accent); padding-left: 20px;">
+      <h3 style="font-family: var(--font-title); font-size: 22px; font-weight: normal; margin-bottom: 6px; color: #0a0a0a;">条目标题</h3>
+      <p class="content-body" style="font-size: 16px;">要点描述。</p>
+    </div>
+    <!-- 更多要点... -->
+  </div>
+
+  <!-- 金句引用（可选） -->
+  <div class="bg-block">
+    <p style="font-family: var(--font-body); font-size: 18px; font-style: italic; line-height: 1.6;">"原文中最有冲击力的一句话"</p>
+  </div>
+
+  <!-- 页脚 -->
+  <div class="footer">@vista8 · 向阳乔木推荐看</div>
+</div>
+```
+
+## 卡片宽度方案
+
+### 手机优先（默认）— 600px
+
+> **80%+ 用户在手机上看图**。600px × 2x = 1200px，iPhone 3x 屏近 1:1 显示，正文 ~13pt 舒适可读。
+
+| 属性 | 值 |
+|------|------|
+| CSS 宽度 | `600px` |
+| viewport | `<meta name="viewport" content="width=600">` |
+| 截图 | `device_scale_factor=2`，`fullPage=true` |
+| 输出图片 | 1200px 宽 |
+| 适用平台 | 微信、X、小红书、即刻、朋友圈 |
+
+### 桌面/平板 — 800px
+
+> 用户提到「桌面」「博客配图」「PPT」「iPad」「宽一点」时自动切换，**无需 AskUserQuestion**。
+
+| 属性 | 值 |
+|------|------|
+| CSS 宽度 | `800px` |
+| viewport | `<meta name="viewport" content="width=800">` |
+| 截图 | `device_scale_factor=2`，`fullPage=true` |
+| 输出图片 | 1600px 宽 |
+| 适用平台 | 博客、知识库、PPT、iPad 阅读 |
+
+**800px 字号适配**（相对 600px 等比放大）：
+
+| 元素 | 600px 值 | 800px 值 |
+|------|---------|---------|
+| 主标题 | 56px | 64px |
+| 副标题 | 22px | 26px |
+| 条目标题 h3 | 28px | 32px |
+| 正文 | 20px | 22px |
+| 标签/speaker | 16px | 18px |
+| 页脚 | 15px | 16px |
+| 卡片 padding | 38px | 48px |
+| 卡片 gap | 24px | 28px |
+
+**切换触发词**：「桌面」「电脑看」「博客」「PPT」「iPad」「宽一点」「800」→ 自动用 800px，不需要问用户。
+
+### 通用规则
+
+1. **截图用 fullPage=true**：捕获完整卡片，不裁剪
+2. **字号底线**：标签/页脚 **不低于 15px**（手机 ~10pt），正文 **不低于 20px**（手机 ~13pt）
+3. **高密度内容用单栏列表**，不用多栏网格（多栏在手机上每栏太窄）
+4. **不再使用 900px**：800px 是桌面端的最佳平衡（单栏行字数适中，iPad 1600px 完美）
+
+## 视觉层级原则（色块优先，线条克制）
+
+> **核心**：区分内容块时，优先用**背景色块**（`bg-block`、浅灰底 `rgba(0,0,0,0.03)`），不要堆叠装饰线。
+
+| 需求 | 正确做法 | 错误做法 |
+|------|---------|---------|
+| 区分内容块 | 浅灰色块 `.bg-block`、留白间距 | 给每个块加 `border-top` / `border-left` |
+| 突出重点 | 色块背景 + accent 左边线（仅 1 条） | 同时用顶部线 + 左边线 + 底部线 |
+| 分隔大段落 | `accent-bar-full`（全宽，**全卡最多 1 条**） | 每个段落之间都加分隔线 |
+| 多栏/网格分隔 | 留白 `gap` + 色块背景差异 | 每个格子加 `border-top` 彩色线 |
+
+**装饰线预算**：
+- 一张卡片中，`accent-bar`（短装饰线）最多 **1 条**，`accent-bar-full`（全宽分隔线）最多 **1 条**
+- 条目之间用**留白** `gap` 分隔，不用线
+- 需要强调某个条目时，用 `.bg-block`（浅灰底 + 左边线），不要给每个条目都加左边线
+- 多栏网格中，用色块底色区分，不用 `border-top` 彩色线
+
+## 移动端紧凑原则
+
+> **核心**：卡片最终在手机上以图片形式阅读。字号是第一优先级，间距服务于字号。
+
+**手机 pt 换算**：600px CSS × 2x 截图 = 1200px 图片，iPhone 3x 屏上 `CSS px × 2 ÷ 3 ≈ pt`。正文 20px ≈ 13pt，标签 16px ≈ 10pt。
+
+**字号底线**（绝对不能低于）：
+- 正文：**20px**（手机 ~13pt）
+- 条目标题：**28px**（手机 ~18pt）
+- 标签/speaker/dim：**16px**（手机 ~10pt）
+- 页脚/出处：**15px**（手机 ~10pt）
+
+**卡片 padding**：`38px`，让内容区更宽。
+
+**条目间距**：
+- `.points` 容器 gap：`14px`，色块背景色差已足够区分
+- 条目内部 padding：`16px 18px`
+
+**条目标签（speaker / dim）**：
+- 颜色用 `var(--color-accent)`，不用 `#999`
+- 字号 `16px`，`letter-spacing: 0.08em`
+
+**段落间 gap**：
+- `.card` 顶层 gap：`24px`
+- 金句 `.bg-block` 内部 padding：`18px 20px`
+
+```css
+/* 移动端参考值 */
+.card { padding: 38px; gap: 24px; }
+.main-title { font-size: 56px; }
+.subtitle { font-size: 22px; }
+.point h3 { font-size: 28px; }
+.point p { font-size: 20px; line-height: 1.65; }
+.point .dim,
+.point .speaker { font-size: 16px; color: var(--color-accent); }
+.label { font-size: 16px; }
+.bg-block p { font-size: 22px; }
+.footer { font-size: 15px; }
+.points { gap: 14px; }
+.point { padding: 16px 18px; }
+.bg-block { padding: 18px 20px; }
+```
 
 ## 配色方案
 
@@ -268,3 +462,169 @@ body {
 | 深金 | `#8b6914` | 财经/商业/价值 |
 | 深灰 | `#2c2c2c` | 中性/通用/严肃 |
 | 紫罗兰 | `#5b2d8e` | 创意/哲学/艺术 |
+
+### 多卡片同色系渐变
+
+> **原则**：多张卡片组成系列时，在主色系内做色相/明度微调，保持系列感又避免单调。
+
+**做法**：以主题色为基准，每张卡片在色相环上偏移 10-20°，或在明度上做 ±10% 调整。
+
+**示例（深金系列 4 张）**：
+
+| 卡片 | 色名 | 色值 | 偏移 |
+|------|------|------|------|
+| 1/N | 深金（基准） | `#8b6914` | — |
+| 2/N | 赤铜 | `#8a4a1a` | 偏暖红 |
+| 3/N | 橄榄金 | `#6b5b1e` | 偏绿沉稳 |
+| 4/N | 琥珀 | `#9c5a0a` | 偏亮收尾 |
+
+**规则**：
+- 第 1 张用主题基准色
+- 中间卡片交替偏暖/偏冷
+- 最后一张可略提亮度，收尾提气
+- 所有色值与 `--color-bg: #f5f3ed` 对比度需 ≥ 4.5:1（WCAG AA）
+
+## 顶部标签使用规则
+
+> **默认不加标签**。顶部标签（`.label` + `.accent-bar`）是可选元素，不是必须的。
+
+| 场景 | 是否添加 | 示例 |
+|------|---------|------|
+| 单张独立卡片 | ❌ 不加 | — |
+| 多张系列卡片 | ✅ 加编号 | `圆桌复盘 · 2/5` |
+| 用户明确要求分类标签 | ✅ 加 | `AI 趋势` |
+| 内容本身有明确主题分类 | 可选 | 根据内容判断 |
+
+## 风格方案（生成卡片时用 AskUserQuestion 让用户选择）
+
+### 方案一：经典风格（默认）
+
+沿用上方基础 CSS，全部使用 TsangerJinKai。适合快速出图、风格统一。
+
+### 方案二：杂志风格
+
+在经典风格基础上做精致化升级，适合正式发布、社交媒体传播。
+
+**与经典风格的差异**：
+
+| 元素 | 经典风格 | 杂志风格 |
+|------|---------|---------|
+| 卡片 padding | `38px` | `44px 42px` |
+| 卡片 gap | `24px` | `28px` |
+| 正文颜色 `--color-muted` | `#555` | `#333` |
+| 条目列表 | 统一灰底，`gap: 14px` | 奇偶交替底色，`gap: 0` |
+| speaker/dim 标签 | `16px` | `13px`, `letter-spacing: 0.15em`, `opacity: 0.85` |
+| 条目标题 h3 | `28px` | `26px` |
+| 正文 p | `20px`, `line-height: 1.65` | `18px`, `line-height: 1.75` |
+| accent-bar | `6px × 80px` | `4px × 60px` |
+| label | `16px`, `letter-spacing: 0.12em` | `15px`, `letter-spacing: 0.18em` |
+| 页脚 | 直线分隔 | `· · ·` 装饰符分隔 |
+| 金句引用 | `.bg-block`（浅灰底 + 左边线） | `.pull-quote`（见下方） |
+
+**杂志风格条目 CSS**：
+
+```css
+/* 条目奇偶交替 */
+.points { display: flex; flex-direction: column; gap: 0; }
+.point { padding: 20px 22px; }
+.point:nth-child(odd) { background: rgba(0,0,0,0.035); }
+.point:nth-child(even) { background: transparent; }
+
+/* speaker 标签更精致 */
+.point .speaker {
+  font-size: 13px; letter-spacing: 0.15em;
+  text-transform: uppercase; opacity: 0.85;
+}
+
+/* 页脚装饰 */
+.footer-divider {
+  text-align: center; color: #ccc; font-size: 14px;
+  letter-spacing: 0.5em; margin-bottom: -8px;
+}
+```
+
+**金句引用 `.pull-quote`（克制版）**：
+
+> **原则**：金句是点睛之笔，不是视觉重心。用浅底色 + 左边线 + 装饰引号，融入整体节奏，不喧宾夺主。
+> **禁止**：深色反转背景（accent色满底 + 白字）。这会抢走正文内容的注意力。
+
+```css
+.pull-quote {
+  background: rgba(0,0,0,0.03);
+  padding: 24px 24px 20px;
+  border-left: 4px solid var(--color-accent);
+  position: relative;
+}
+.pull-quote::before {
+  content: '\201C';
+  font-family: Georgia, serif;
+  font-size: 56px;
+  color: var(--color-accent);
+  opacity: 0.15;
+  position: absolute;
+  top: -4px;
+  left: 12px;
+  line-height: 1;
+}
+.pull-quote p {
+  font-family: var(--font-body);
+  font-size: 20px;
+  line-height: 1.7;
+  color: #1a1a1a;
+  font-style: italic;
+  position: relative;
+  z-index: 1;
+}
+.pull-quote .attribution {
+  font-family: var(--font-label);
+  font-size: 14px;
+  color: #999;
+  margin-top: 10px;
+  letter-spacing: 0.08em;
+}
+```
+
+### 字体方案（可叠加在任一风格上）
+
+| 方案 | 标题 | 正文 | 标签 | 适用场景 |
+|------|------|------|------|---------|
+| 全楷体（默认） | TsangerJinKai | TsangerJinKai | TsangerJinKai | 国风、文化、通用 |
+| 楷宋混排 | TsangerJinKai | NotoSerifSC | TsangerJinKai | 商业、正式、长文 |
+
+**NotoSerifSC 引入**（楷宋混排时额外添加）：
+```css
+@font-face {
+  font-family: 'NotoSerifSC';
+  src: url('file:///Users/joe/.claude/skills/qiaomu-info-card-designer/assets/NotoSerifSC-Regular.ttf') format('truetype');
+  font-weight: normal; font-style: normal; font-display: block;
+}
+:root {
+  --font-body: 'NotoSerifSC', serif; /* 仅替换正文 */
+}
+```
+
+## 输出与部署规则
+
+> **生成完成后自动部署，不需要询问用户。**
+
+### 工作流
+
+1. **生成 HTML** → `/tmp/info-cards-{slug}/` 临时目录
+2. **Playwright 截图** → 同目录下 `.png`（2x，fullPage）
+3. **自动部署** → 复制 HTML + PNG 到目标目录（见下方规则）
+
+### 目标目录规则
+
+| 条件 | 目标路径 | 说明 |
+|------|---------|------|
+| 用户指定了路径 | 用户指定的路径 | 最高优先级 |
+| 默认 | `~/Downloads/info-cards/{slug}/` | 通用默认，适合分享 |
+
+> **slug 命名规则**：`YYYYMMDD-{来源简称}-{主题关键词}`，全小写英文+连字符。
+> 示例：`20260327-justinlin-agentic-thinking`、`20260327-hermes-harness`
+
+### 部署内容
+
+每个目录包含：
+- `card*.html` — 源文件（可二次编辑）
+- `card*.png` — 截图（直接可用于发布）

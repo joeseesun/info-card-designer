@@ -1,4 +1,4 @@
-# info-card-designer
+# qiaomu-info-card-designer
 
 > Turn any text or URL into a magazine-quality info card image — auto screenshot included.
 > 将任意文本或链接一键转化为杂志质感信息卡片，自动截图输出图片，适合分享到 X、小红书、微信。
@@ -20,15 +20,16 @@ Give Claude a URL, paste text, or describe a topic — this skill designs a maga
 - Supports 480 / 600 / 900px width — just say "make it 480px wide"
 - Auto-splits cards taller than 1200px into multiple images
 - vw-based font sizing: fonts scale proportionally with card width
+- Uses TsangerJinKai (仓耳今楷) local font for consistent rendering
 
 ### Prerequisites
 
-- [ ] **Chrome DevTools MCP** installed and connected (used for headless screenshot)
-  - Install: add `chrome-devtools` MCP server to your Claude Code config
-  - Verify: Claude can call `navigate_page`, `take_screenshot`
-- [ ] **Python 3** with Pillow (for image splitting)
-  - Install: `pip3 install Pillow`
-  - Verify: `python3 -c "from PIL import Image; print('ok')"`
+- [ ] **Playwright Python** (used for headless screenshot)
+  - Install: `pip3 install playwright && python3 -m playwright install chromium`
+  - Verify: `python3 -c "from playwright.sync_api import sync_playwright; print('ok')"`
+- [ ] **Python 3 + Pillow + NumPy** (for image splitting)
+  - Install: `pip3 install Pillow numpy`
+  - Verify: `python3 -c "from PIL import Image; import numpy; print('ok')"`
 
 ### Installation
 
@@ -54,20 +55,21 @@ Say any of these to Claude:
 
 ### Width options
 
-| Width | Best for |
-|-------|----------|
-| 480px | Mobile-first, compact |
-| 600px | Default, balanced (recommended) |
-| 900px | Desktop / large-screen sharing |
+| Width | Best for | Output (2x DPR) |
+|-------|----------|-----------------|
+| 480px | Mobile-first, compact | 960px (3x → 1440px) |
+| **600px** | **Default, balanced (recommended)** | **1200px** |
+| 900px | Desktop / large-screen sharing | 1800px |
 
 ### Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
-| Screenshot fails / page not found | Make sure Chrome DevTools MCP is connected and Chrome is running |
-| `No module named PIL` | Run `pip3 install Pillow` |
+| Screenshot fails | Make sure Playwright is installed: `pip3 install playwright && python3 -m playwright install chromium` |
+| `No module named playwright` | Run `pip3 install playwright` then `python3 -m playwright install chromium` |
+| `No module named PIL` | Run `pip3 install Pillow numpy` |
 | Card content is wrong / made up | The skill is instructed to use only your source content — re-trigger with the URL or paste the text directly |
-| Card too tall (1 image) | Splitting is automatic when height > 1200px; check that Pillow is installed |
+| Card too tall (1 image) | Splitting is automatic when height > 1200px; check that Pillow + NumPy are installed |
 
 ### Credits
 
@@ -89,15 +91,16 @@ Design inspiration from [@shao__meng](https://x.com/shao__meng)'s original post 
 - Hook 模式（默认开启）：每条描述改写为 10-20 字钩子句，有冲击感
 - 支持 480 / 600 / 900px 宽度，说"生成 480 宽的卡片"即可切换
 - 超长卡片（>1200px）自动分割成多张图
+- 使用仓耳今楷（TsangerJinKai）本地字体，截图渲染 100% 一致
 
 ### 前置条件
 
-- [ ] **Chrome DevTools MCP** 已安装并连接
-  - 用于无头截图（headless screenshot）
-  - 验证：Claude 能调用 `navigate_page`、`take_screenshot`
-- [ ] **Python 3 + Pillow**（用于超长图片分割）
-  - 安装：`pip3 install Pillow`
-  - 验证：`python3 -c "from PIL import Image; print('ok')"`
+- [ ] **Playwright Python**（用于无头截图）
+  - 安装：`pip3 install playwright && python3 -m playwright install chromium`
+  - 验证：`python3 -c "from playwright.sync_api import sync_playwright; print('ok')"`
+- [ ] **Python 3 + Pillow + NumPy**（用于超长图片分割）
+  - 安装：`pip3 install Pillow numpy`
+  - 验证：`python3 -c "from PIL import Image; import numpy; print('ok')"`
 
 ### 安装
 
@@ -134,10 +137,10 @@ npx skills add joeseesun/info-card-designer
 
 | 问题 | 解决方法 |
 |------|----------|
-| 截图失败 | 检查 Chrome DevTools MCP 是否已连接 |
-| `No module named PIL` | 运行 `pip3 install Pillow` |
+| 截图失败 | 安装 Playwright：`pip3 install playwright && python3 -m playwright install chromium` |
+| `No module named PIL` | 运行 `pip3 install Pillow numpy` |
 | 内容不对 / 有编造 | 提供原文链接或直接粘贴文本，重新触发 |
-| 超长卡没有分割 | 确认 Pillow 已安装，高度 >1200px 才触发分割 |
+| 超长卡没有分割 | 确认 Pillow + NumPy 已安装，高度 >1200px 才触发分割 |
 
 ### 致谢
 
