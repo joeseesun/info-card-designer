@@ -452,7 +452,101 @@ body {
 .bg-block { padding: 18px 20px; }
 ```
 
+## 图标使用规范
+
+> **原则**：禁止使用 emoji。所有图标统一使用 Lucide Icons（开源，MIT协议），通过 CDN 引入。
+
+### 引入方式
+
+```html
+<!-- 在 <head> 中引入 -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+<!-- 在 HTML 中使用 -->
+<i data-lucide="book-open" class="icon"></i>
+
+<!-- 在 </body> 前初始化 -->
+<script>lucide.createIcons();</script>
+```
+
+### 图标样式 CSS
+
+```css
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  vertical-align: middle;
+  color: var(--color-accent);  /* 继承 accent 颜色 */
+}
+
+/* section 标题旁图标（稍大） */
+.section-icon {
+  width: 26px;
+  height: 26px;
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+```
+
+### 常用图标速查
+
+| 场景 | 图标名 | 用法 |
+|------|--------|------|
+| 教育/阅读 | `book-open` | 教育理念区块 |
+| 家庭/关系 | `users` | 家庭关系区块 |
+| 财富/增长 | `trending-up` | 财富话题 |
+| 升级/转变 | `arrow-right` | 对比/升级列表 |
+| 决策/平衡 | `scale` | 决策框架 |
+| 确认/原则 | `check-circle` | 核心规则列表 |
+| 合作 | `handshake` | 合作规则 |
+| 运动/健康 | `activity` | 运动习惯 |
+| 饮食/自然 | `leaf` | 饮食建议 |
+| 人生方向 | `compass` | 哲学/方向 |
+| 思考/洞见 | `lightbulb` | 学习方法 |
+| 反复改进 | `repeat-2` | 迭代/成长 |
+| 警示 | `alert-triangle` | 注意事项 |
+| 流程步骤 | `arrow-right` | 四步流程 |
+| 金句引用 | `quote` | 引用块装饰 |
+| 健康跑步 | `footprints` | 跑步习惯 |
+| 时钟/时间 | `clock` | 时间相关 |
+| 简洁/极简 | `minimize-2` | 简单原则 |
+
+### 注意事项
+
+- **Playwright 截图前必须等待 CDN 加载**：`page.wait_for_timeout(3000)`（比普通卡片多 1s）
+- 图标颜色默认继承 `currentColor`，通过父容器 `color` 属性控制
+- 图标大小用 CSS 控制，不用 HTML 属性
+- 不要在正文段落内行内混入图标（影响阅读节奏），只在标题/标签区块使用
+
+**⚠️ 关键 Bug：CSS 选择器必须同时覆盖 `i` 和 `svg`**
+
+Lucide 的 `createIcons()` 会把 `<i data-lucide="...">` 替换成 `<svg>` 元素。替换后，原来针对 `i` 的 CSS 选择器就失效了。
+
+正确写法（必须同时写 `i` 和 `svg`）：
+
+```css
+/* ✅ 正确 */
+.rule-item i, .rule-item svg { width: 20px; height: 20px; color: var(--accent); }
+
+/* ❌ 错误：替换后 i 选择器失效，图标颜色变成继承色 */
+.rule-item i { color: var(--accent); }
+```
+
+最可靠的替代方案：在图标的**父容器**上设置 `color: var(--accent)`，SVG 通过 `currentColor` 自动继承，无需依赖选择器：
+
+```css
+/* 最稳定的方式：父容器设色 */
+.section-label { color: var(--accent); }  /* 子图标自动继承 */
+```
+
+---
+
 ## 配色方案
+
+### 经典/杂志风格配色（A/B 风格）
 
 | 主题 | accent 颜色 | 适用场景 |
 |------|------------|---------|
@@ -462,6 +556,24 @@ body {
 | 深金 | `#8b6914` | 财经/商业/价值 |
 | 深灰 | `#2c2c2c` | 中性/通用/严肃 |
 | 紫罗兰 | `#5b2d8e` | 创意/哲学/艺术 |
+
+### 艺术风格配色（C 风格）
+
+> **原则**：避开上方的常见"安全色"，选有气质的非常规色，背景加微渐变或色温偏移。
+
+| 主题 | 背景 | accent | 适用场景 |
+|------|------|--------|---------|
+| 赭石棕 | `#F7F3EE` → `#F2ECE4`（微暖渐变） | `#7A3B1E` | 人文/教育/历史 |
+| 苔藓绿 | `#EDF2ED` → `#E4EDE5`（微冷渐变） | `#2D5016` | 自然/健康/生活 |
+| 茄紫 | `#F2EEF8` → `#EBE5F5` | `#3D1F6E` | 哲学/创意/精神 |
+| 古铜暗 | `#0F0C07`（深暗底） | `#7A5C1E` | 财富/权威/深度 |
+| 烟灰蓝 | `#EEF0F4` → `#E8EBF2` | `#2A3A5C` | 科技/理性/冷静 |
+| 胭脂红 | `#F8EEEE` → `#F2E5E5` | `#8B1A2A` | 激情/警示/重要 |
+
+**艺术风格背景渐变写法**：
+```css
+background: linear-gradient(160deg, #F7F3EE 0%, #F2ECE4 100%);
+```
 
 ### 多卡片同色系渐变
 
@@ -483,6 +595,96 @@ body {
 - 中间卡片交替偏暖/偏冷
 - 最后一张可略提亮度，收尾提气
 - 所有色值与 `--color-bg: #f5f3ed` 对比度需 ≥ 4.5:1（WCAG AA）
+
+## 深色卡片设计规范（艺术风格 C 专用）
+
+> 深色背景卡片有独特的对比度挑战，以下规则**强制执行**，违反任意一条都会导致截图不可读。
+
+### 三字体混排（Style C 必须）
+
+```css
+/* 必须声明两个本地字体 */
+@font-face { font-family:'TsangerJinKai'; src:url('file:///Users/joe/.claude/skills/qiaomu-info-card-designer/assets/TsangerJinKai02-W04.ttf') format('truetype'); font-weight:normal; font-style:normal; font-display:block; }
+@font-face { font-family:'NotoSerifSC'; src:url('file:///Users/joe/.claude/skills/qiaomu-info-card-designer/assets/NotoSerifSC-Regular.ttf') format('truetype'); font-weight:normal; font-style:normal; font-display:block; }
+
+:root {
+  --kai: 'TsangerJinKai', serif;    /* 标题、条目标题 */
+  --song: 'NotoSerifSC', serif;     /* 正文描述、金句 */
+  --sans: -apple-system, 'Helvetica Neue', sans-serif; /* 编号、标签、eyebrow、footer */
+}
+```
+
+**字体分工**：
+| 层级 | 字体 | 示例元素 |
+|------|------|---------|
+| 主标题 / 条目标题 | `--kai` 仓耳今楷 | `.main-title`, `.item-title` |
+| 正文描述 / 引用 | `--song` NotoSerifSC | `.item-sub`, `.quote-text` |
+| 编号 / 标签 / eyebrow / footer | `--sans` 系统无衬线 | `.num`, `.eyebrow`, `.section-label` |
+
+### 深色背景对比度规则
+
+**section-label 最小字号**：
+
+```css
+/* ✅ 正确：13px 手机可读 */
+.section-label { font-size: 13px; letter-spacing: 0.14em; }
+
+/* ❌ 错误：10px 手机上几乎不可见 */
+.section-label { font-size: 10px; }
+```
+
+**编号 `.num` 对比度要求**：
+
+- 编号字号 ≥ 42px（属于大字体，WCAG 大字标准：≥ 3:1）
+- 冷色系 accent（蓝/绿/紫）在深色背景上天然亮度低，直接用往往不达标
+- 暖色系（金/铜/橙）对比度更稳定
+
+```css
+/* ✅ 正确：使用提亮版本的固定色值 */
+.num { color: #4E6E96; }  /* 蓝系，~4.8:1 on #06090F */
+.num { color: #3C7850; }  /* 绿系，~5:1 on #050D07 */
+.num { color: #6848A0; }  /* 紫系，~3.7:1 on #08050E */
+.num { color: #8C6830; }  /* 金系，~4.6:1 on #0D0A05 */
+
+/* ❌ 错误：直接使用 accent 颜色（可能过暗） */
+.num { color: var(--accent); }  /* #6A8FBC 在深蓝背景上只有 2.8:1，不合规 */
+```
+
+### 禁止 opacity 叠加
+
+**opacity 叠加在深色背景上会把颜色压成几乎不可见的黑色**：
+
+```css
+/* ❌ 错误：opacity 叠加 */
+.eyebrow { color: var(--accent); opacity: 0.45; }  /* 实际渲染极暗 */
+.num { color: var(--accent); opacity: 0.22; }       /* 几乎看不见 */
+
+/* ✅ 正确：直接用固定色值 */
+.eyebrow { color: #5A789C; }  /* 不用 opacity，直接给合规的颜色 */
+.num { color: #4E6E96; }
+```
+
+### hex 颜色必须恰好 6 位
+
+```css
+/* ❌ 错误：7 位 hex，浏览器静默回退为黑色！ */
+color: #6040888;  /* 7 位，无效 */
+
+/* ✅ 正确：恰好 6 位 */
+color: #604088;   /* 6 位，有效 */
+```
+
+### 各色系 num 颜色参考值
+
+| 色系 | 背景 | num 颜色 | 对比度 |
+|------|------|---------|--------|
+| 古铜暗（金系） | `#0D0A05` | `#8C6830` | ~4.6:1 |
+| 钢青（蓝系） | `#06090F` | `#4E6E96` | ~4.8:1 |
+| 苔绿（绿系） | `#050D07` | `#3C7850` | ~5.0:1 |
+| 深紫（紫系） | `#08050E` | `#6848A0` | ~3.7:1 |
+| 暖铜（铜系） | `#0E0907` | `#7A5430` | ~4.5:1 |
+
+---
 
 ## 顶部标签使用规则
 
@@ -605,23 +807,23 @@ body {
 
 ## 输出与部署规则
 
-> **生成完成后自动部署，不需要询问用户。**
+> **截图完成后立即自动 deploy，不询问用户，不等待确认。**
 
 ### 工作流
 
-1. **生成 HTML** → `/tmp/info-cards-{slug}/` 临时目录
+1. **生成 HTML** → `/tmp/` 临时目录
 2. **Playwright 截图** → 同目录下 `.png`（2x，fullPage）
-3. **自动部署** → 复制 HTML + PNG 到目标目录（见下方规则）
+3. **自动部署** → 直接复制 HTML + PNG 到目标目录，无需询问
 
 ### 目标目录规则
 
-| 条件 | 目标路径 | 说明 |
-|------|---------|------|
-| 用户指定了路径 | 用户指定的路径 | 最高优先级 |
-| 默认 | `~/Downloads/info-cards/{slug}/` | 通用默认，适合分享 |
+| 条件 | 目标路径 |
+|------|---------|
+| 用户指定了路径 | 用户指定的路径 |
+| 默认 | `~/Downloads/info-cards/{slug}/` |
 
 > **slug 命名规则**：`YYYYMMDD-{来源简称}-{主题关键词}`，全小写英文+连字符。
-> 示例：`20260327-justinlin-agentic-thinking`、`20260327-hermes-harness`
+> 示例：`20260327-justinlin-agentic-thinking`、`20260405-life-wisdom`
 
 ### 部署内容
 
