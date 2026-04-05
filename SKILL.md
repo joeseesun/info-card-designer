@@ -89,6 +89,20 @@ curl -sL "https://r.jina.ai/{url}" 2>/dev/null
 - 标题、描述、来源、金句均须与原文一致，Hook 改写只改表达方式，不改事实
 - 用户说"保持原文"或"不改描述"时关闭 Hook 模式
 
+**可图化评估（Step 1 末尾自动执行，不询问用户）**：
+
+分析完内容后，判断是否值得加图：
+
+| 内容特征 | 图表类型 |
+|---------|---------|
+| 明确的因果链（A 导致 B，B 导致 C） | Mermaid flowchart |
+| 有明确顺序的步骤流程（3 步以上） | Mermaid flowchart |
+| 概念间有包含/对立/互补关系 | Mermaid graph |
+| 有形象概念但 Mermaid 表达不了 | 内联 SVG |
+| 纯观点/金句/哲学/数字列表 | **不加图** |
+
+> **原则**：图是配角，只在图比文字能多传递 30% 以上信息时才加。宁可不加，不要为了加图而加图。
+
 ### Step 2：分析布局
 
 - **低密度**（1 个核心观点）→ 大字符主义布局（模板 A）
@@ -140,6 +154,86 @@ curl -sL "https://r.jina.ai/{url}" 2>/dev/null
 
 读取 `references/design-spec.md` 获取完整设计规范（字号、配色、布局模板、CSS 变量等），**所有视觉参数以 design-spec.md 为准**。
 
+**图表区生成规范（如 Step 1 判断需要加图）**：
+
+图表位置：主标题/副标题下方，要点列表上方，作为内容结构的视觉总览。
+
+#### Mermaid 流程图
+
+```html
+<!-- 在 <head> 引入 -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  themeVariables: {
+    primaryColor: 'var(--accent-hex)',      /* 用卡片 accent 色，写死 hex 值 */
+    primaryTextColor: 'var(--text-hex)',
+    primaryBorderColor: 'var(--num-hex)',
+    lineColor: 'var(--num-hex)',
+    background: 'transparent',
+    edgeLabelBackground: 'transparent',
+    fontSize: '15px'
+  },
+  flowchart: { curve: 'basis', padding: 16 }
+});
+</script>
+
+<!-- 在 HTML 中使用 -->
+<div class="diagram-block">
+  <pre class="mermaid">
+flowchart LR
+  A[摄入糖] --> B[血糖升高] --> C[胰岛素分泌] --> D[压制生长激素]
+  </pre>
+</div>
+```
+
+**Mermaid CSS（图表容器）**：
+```css
+.diagram-block {
+  background: rgba(255,255,255,0.04);  /* 深色卡片用微亮底 */
+  border-radius: 10px;
+  padding: 20px 16px;
+  margin-bottom: 36px;
+  overflow: hidden;
+}
+.diagram-block .mermaid { display: flex; justify-content: center; }
+.diagram-block svg { max-width: 100%; height: auto; }
+```
+
+**Mermaid 注意事项**：
+- `themeVariables` 中必须写**固定 hex 值**，不能写 `var(--xxx)`（Mermaid 不解析 CSS 变量）
+- 浅色卡片用 `theme: 'neutral'`，深色卡片用 `theme: 'base'` + 自定义 themeVariables
+- 节点文字保持简短（≤ 6 字），否则截图时节点拉太宽
+
+#### 内联 SVG
+
+当内容更适合形象图示而非流程图时，用内联 SVG：
+
+```html
+<div class="diagram-block">
+  <svg viewBox="0 0 500 120" xmlns="http://www.w3.org/2000/svg"
+       style="width:100%;height:auto;display:block;">
+    <!-- 用卡片 accent 色填充，与整体配色统一 -->
+    <rect x="10" y="40" width="120" height="44" rx="8"
+          fill="rgba(196,151,58,0.15)" stroke="#8C6830" stroke-width="1.5"/>
+    <text x="70" y="67" text-anchor="middle"
+          font-family="-apple-system,sans-serif" font-size="15" fill="#EAD9B5">概念A</text>
+    <!-- 箭头 -->
+    <line x1="132" y1="62" x2="178" y2="62" stroke="#8C6830" stroke-width="2"/>
+    <polygon points="178,56 190,62 178,68" fill="#8C6830"/>
+    <!-- 更多节点... -->
+  </svg>
+</div>
+```
+
+**SVG 原则**：
+- viewBox 固定宽 500，高度按内容决定（通常 80-160）
+- 颜色用卡片的 accent/text/muted 固定值，不用 CSS 变量（SVG 属性不继承）
+- 字体用系统无衬线（`-apple-system,sans-serif`），确保截图渲染稳定
+- 保持极简：只用矩形、箭头、文字，不追求复杂图形
+
 **硬性约束**：
 - 卡片宽度：默认 **600px**，仅在用户明确要求时使用 480 / 900
 - `<meta name="viewport" content="width=[指定宽度]">` 防缩放
@@ -153,6 +247,7 @@ curl -sL "https://r.jina.ai/{url}" 2>/dev/null
 
 **使用 Playwright Python 截图**（不用 Chrome DevTools MCP，避免端口冲突）：
 
+**无图表时**（标准等待）：
 ```python
 from playwright.sync_api import sync_playwright
 import os
@@ -164,6 +259,30 @@ with sync_playwright() as p:
     page.wait_for_timeout(2000)  # 等待字体加载
     page.screenshot(path="/tmp/info-card-xxx.png", full_page=True)
     browser.close()
+```
+
+**含 Mermaid 图表时**（需等待 SVG 渲染完成）：
+```python
+from playwright.sync_api import sync_playwright
+import os
+
+with sync_playwright() as p:
+    browser = p.chromium.launch(headless=True)
+    page = browser.new_page(viewport={"width": 600, "height": 900}, device_scale_factor=2)
+    page.goto("file:///tmp/info-card-xxx.html")
+    page.wait_for_timeout(1500)  # 等待字体 + Mermaid JS 加载
+    # 等待 Mermaid 渲染完毕（SVG 出现）
+    try:
+        page.wait_for_function(
+            "() => document.querySelectorAll('.mermaid svg').length > 0",
+            timeout=8000
+        )
+    except:
+        pass  # 超时降级：继续截图，图表可能未渲染
+    page.wait_for_timeout(500)  # 额外稳定等待
+    page.screenshot(path="/tmp/info-card-xxx.png", full_page=True)
+    browser.close()
+```
 
 from PIL import Image
 img = Image.open("/tmp/info-card-xxx.png")
